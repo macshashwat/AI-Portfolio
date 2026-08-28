@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Github, Linkedin, Mail, ArrowDown } from 'lucide-react';
+import { Github, Linkedin, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -173,14 +173,6 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
-          <ArrowDown className="text-green-500" size={32} />
-        </motion.div>
-      </div>
     </section>
   );
 };
