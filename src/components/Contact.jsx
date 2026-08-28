@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
 const Contact = () => {
+  const contactEndpoint = import.meta.env.VITE_CONTACT_FORM_ENDPOINT || 'https://formsubmit.co/ajax/shashwatmishra717@gmail.com';
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
@@ -81,17 +82,19 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulating an API call for email sending
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Store in localStorage as per initial implementation requirements
-      const messages = JSON.parse(localStorage.getItem('contact_messages') || '[]');
-      messages.push({
-        ...formData,
-        id: Date.now(),
-        date: new Date().toISOString()
+      const response = await fetch(contactEndpoint, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          _subject: `Portfolio contact: ${formData.subject}`,
+          _replyto: formData.email
+        })
       });
-      localStorage.setItem('contact_messages', JSON.stringify(messages));
+      const result = await response.json();
+      if (!response.ok || result.success !== 'true') {
+        throw new Error(result.message || 'The message service rejected the request.');
+      }
 
       toast({
         title: "Message Sent Successfully!",
@@ -109,7 +112,7 @@ const Contact = () => {
     } catch (error) {
       toast({
         title: "Error Sending Message",
-        description: "Something went wrong. Please try again later.",
+        description: error.message || "Something went wrong. Please try again later.",
         variant: "destructive"
       });
     } finally {
