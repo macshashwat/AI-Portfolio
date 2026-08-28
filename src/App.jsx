@@ -1,0 +1,61 @@
+import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
+import { Moon, Sun } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Header from '@/components/Header';
+import Hero from '@/components/Hero';
+import About from '@/components/About';
+
+import Projects from '@/components/Projects';
+import Contact from '@/components/Contact';
+import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/toaster';
+
+function App() {
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      setIsDark(saved === 'dark');
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+  };
+
+  return (
+    <>
+      <Helmet>
+        <title>Shashwat Mishra - Fullstack/Backend Developer Portfolio</title>
+        <meta name="description" content="Professional portfolio of Shashwat Mishra, a skilled Fullstack and Backend Developer specializing in modern web technologies and scalable applications." />
+      </Helmet>
+      <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300">
+        <Header isDark={isDark} toggleTheme={toggleTheme} />
+
+        {/* The theme toggle button was moved to Header.jsx */}
+
+        <Hero />
+        <About />
+
+        <Projects />
+        <Contact />
+        <Footer />
+        <Toaster />
+      </div>
+    </>
+  );
+}
+
+export default App;
