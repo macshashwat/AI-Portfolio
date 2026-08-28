@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Import Button component
 
-const Header = ({ isDark, toggleTheme }) => {
+const Header = ({ isDark, toggleTheme, onBlogClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -20,7 +20,8 @@ const Header = ({ isDark, toggleTheme }) => {
     { label: 'About', href: '#about' },
 
     { label: 'Projects', href: '#projects' },
-    { label: 'Contact', href: '#contact' }
+    { label: 'Contact', href: '#contact' },
+    { label: 'Blog', href: '#blog', isBlog: true }
   ];
 
   const scrollToSection = (e, href) => {
@@ -34,10 +35,7 @@ const Header = ({ isDark, toggleTheme }) => {
 
   return (
     <motion.header
-      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${isScrolled || isMobileMenuOpen
-          ? 'bg-white/95 dark:bg-black/95 backdrop-blur-sm shadow-lg border-b border-gray-200 dark:border-gray-800'
-          : 'bg-transparent'
-        }`}
+      className={`fixed top-0 left-0 right-0 z-50 border-b border-gray-200/80 bg-white/90 shadow-sm backdrop-blur-md transition-all duration-300 dark:border-gray-800/80 dark:bg-black/90 ${isScrolled || isMobileMenuOpen ? 'shadow-lg' : ''}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
@@ -77,7 +75,7 @@ const Header = ({ isDark, toggleTheme }) => {
               <motion.a
                 key={item.label}
                 href={item.href}
-                onClick={(e) => scrollToSection(e, item.href)}
+                onClick={(e) => item.isBlog ? (e.preventDefault(), onBlogClick()) : scrollToSection(e, item.href)}
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-green-500 dark:hover:text-green-500 transition-colors relative group"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -129,7 +127,7 @@ const Header = ({ isDark, toggleTheme }) => {
               <a
                 key={item.label}
                 href={item.href}
-                onClick={(e) => scrollToSection(e, item.href)}
+                onClick={(e) => item.isBlog ? (e.preventDefault(), onBlogClick()) : scrollToSection(e, item.href)}
                 className="block py-2 text-gray-700 dark:text-gray-300 hover:text-green-500 dark:hover:text-green-500 transition-colors"
               >
                 {item.label}

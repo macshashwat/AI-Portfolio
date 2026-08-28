@@ -9,11 +9,13 @@ import About from '@/components/About';
 import Projects from '@/components/Projects';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import Blog from '@/components/Blog';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
+  const [showBlog, setShowBlog] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
@@ -42,16 +44,17 @@ function App() {
         <meta name="description" content="Professional portfolio of Shashwat Mishra, a skilled Fullstack and Backend Developer specializing in modern web technologies and scalable applications." />
       </Helmet>
       <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors duration-300">
-        <Header isDark={isDark} toggleTheme={toggleTheme} />
+        {!showBlog && <Header isDark={isDark} toggleTheme={toggleTheme} onBlogClick={() => setShowBlog(true)} />}
 
         {/* The theme toggle button was moved to Header.jsx */}
 
-        <Hero />
-        <About />
-
-        <Projects />
-        <Contact />
-        <Footer />
+        {showBlog ? <Blog onClose={() => setShowBlog(false)} /> : <>
+          <Hero />
+          <About />
+          <Projects />
+          <Contact />
+          <Footer />
+        </>}
         <Toaster />
       </div>
     </>

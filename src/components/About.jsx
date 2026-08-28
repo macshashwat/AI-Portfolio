@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Code, Database, Server, Zap } from 'lucide-react';
+import aboutImage from '../assets/about-me-new.jpg';
 
 const About = () => {
   const highlights = [
@@ -50,9 +51,11 @@ const About = () => {
               <div className="relative">
                 <div className="absolute inset-0 bg-green-500 rounded-lg transform rotate-3"></div>
                 <img
-                  className="relative rounded-lg shadow-2xl w-full h-[400px] object-cover"
+                  className="relative z-10 rounded-lg shadow-2xl w-full h-[400px] object-cover"
                   alt="Professional developer working"
-                  src="/images/about-me-new.jpg" />
+                  src={aboutImage}
+                  loading="lazy"
+                  decoding="async" />
               </div>
             </motion.div>
 
