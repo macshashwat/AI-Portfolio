@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import About from '@/components/About';
+import FeaturedBlogs from '@/components/FeaturedBlogs';
 
 import Projects from '@/components/Projects';
 import Contact from '@/components/Contact';
@@ -87,6 +88,7 @@ function App() {
         {showBlog ? <Blog onClose={() => setShowBlog(false)} /> : <>
           <Hero />
           <About />
+          <FeaturedBlogs onReadMore={() => setShowBlog(true)} />
           <Projects />
           <Contact />
           <Footer />
