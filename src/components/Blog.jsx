@@ -42,8 +42,8 @@ function LoginModal({ onClose, onLogin, initialMode = 'login' }) {
     setError('');
     setMessage('');
     setLoading(true);
-    if (mode === 'signup' && !/^[a-zA-Z0-9_ -]{3,30}$/.test(username.trim())) {
-      setError('Username must be 3–30 characters and use letters, numbers, spaces, _ or -.');
+    if (mode === 'signup' && !/^[a-zA-Z0-9_# -]{3,30}$/.test(username.trim())) {
+      setError('Username must be 3–30 characters and use letters, numbers, spaces, _, # or -.');
       setLoading(false);
       return;
     }
@@ -103,8 +103,8 @@ function ProfileModal({ profile, onSave, onClose, onUpload }) {
   const [avatar, setAvatar] = useState(profile?.avatar_url || '');
   const [error, setError] = useState('');
   const save = async () => {
-    if (!/^[a-zA-Z0-9_ -]{3,30}$/.test(username.trim())) {
-      setError('Username must be 3–30 characters and use letters, numbers, spaces, _ or -.');
+    if (!/^[a-zA-Z0-9_# -]{3,30}$/.test(username.trim())) {
+      setError('Username must be 3–30 characters and use letters, numbers, spaces, _, # or -.');
       return;
     }
     try { await onSave({ username: username.trim(), avatar_url: avatar }); onClose(); }

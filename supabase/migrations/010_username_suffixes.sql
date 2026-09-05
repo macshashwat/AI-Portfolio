@@ -29,7 +29,7 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', username_candidate, 'Reader'),
-    coalesce(nullif(username_candidate, ''), 'reader-' || left(new.id::text, 6))
+    username_candidate
   );
   return new;
 end

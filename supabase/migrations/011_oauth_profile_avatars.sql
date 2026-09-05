@@ -25,11 +25,15 @@ begin
     username_candidate := base_username || '#' || suffix;
   end loop;
 
-  insert into public.profiles (id, display_name, username)
+  insert into public.profiles (id, display_name, username, avatar_url)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', username_candidate, 'Reader'),
-    coalesce(nullif(username_candidate, ''), 'reader-' || left(new.id::text, 6))
+    username_candidate,
+    coalesce(
+      nullif(new.raw_user_meta_data->>'avatar_url', ''),
+      nullif(new.raw_user_meta_data->>'picture', '')
+    )
   );
   return new;
 end
