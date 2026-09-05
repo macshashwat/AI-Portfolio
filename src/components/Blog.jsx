@@ -20,7 +20,7 @@ const mapPost = (post) => ({
   category: post.categories?.name || post.category || 'Uncategorized',
   tags: post.post_tags?.map(({ tags: tag }) => tag.name) || post.tags || [],
   author: post.profiles?.display_name || post.author || 'Shashwat Mishra',
-  comments: post.comments || []
+  comments: post.comments?.map((comment) => ({ ...comment, author: comment.profiles?.username || comment.profiles?.display_name || 'Reader' })) || []
 });
 
 const providerIcons = {
@@ -32,6 +32,7 @@ const providerIcons = {
 function LoginModal({ onClose, onLogin, initialMode = 'login' }) {
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -41,9 +42,14 @@ function LoginModal({ onClose, onLogin, initialMode = 'login' }) {
     setError('');
     setMessage('');
     setLoading(true);
+    if (mode === 'signup' && !/^[a-zA-Z0-9_ -]{3,30}$/.test(username.trim())) {
+      setError('Username must be 3–30 characters and use letters, numbers, spaces, _ or -.');
+      setLoading(false);
+      return;
+    }
     const result = mode === 'login'
       ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password, options: { data: { full_name: email.split('@')[0] } } });
+      : await supabase.auth.signUp({ email, password, options: { data: { full_name: username.trim(), username: username.trim() } } });
     setLoading(false);
     if (result.error) setError(result.error.message);
     else if (mode === 'signup' && !result.data.session) setMessage('Account created. Check your email to confirm your account, then sign in.');
@@ -67,6 +73,7 @@ function LoginModal({ onClose, onLogin, initialMode = 'login' }) {
       </div>
       <div className="mb-5 flex items-center gap-3 text-xs text-gray-400"><span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" /> or use email <span className="h-px flex-1 bg-gray-200 dark:bg-gray-700" /></div>
       <label className="mb-4 block text-sm font-medium">Email<input className="mt-2 w-full rounded-xl border bg-transparent px-4 py-3 outline-none focus:ring-2 focus:ring-green-500" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+      {mode === 'signup' && <label className="mb-4 block text-sm font-medium">Username<input className="mt-2 w-full rounded-xl border bg-transparent px-4 py-3 outline-none focus:ring-2 focus:ring-green-500" value={username} onChange={(e) => setUsername(e.target.value)} maxLength={30} /></label>}
       <label className="mb-2 block text-sm font-medium">Password<input type="password" minLength={6} className="mt-2 w-full rounded-xl border bg-transparent px-4 py-3 outline-none focus:ring-2 focus:ring-green-500" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
       <p className="mb-6 text-xs text-gray-500">{mode === 'login' ? 'Admins can publish posts. Reader accounts can comment, like, and save posts.' : 'Create a reader account to comment, like, and save posts.'}</p>
       {error && <p className="mb-4 text-sm text-red-500">{error}</p>}{message && <p className="mb-4 text-sm text-green-600">{message}</p>}<Button disabled={loading} className="w-full bg-green-500 py-6 hover:bg-green-600"><LockKeyhole size={17} className="mr-2" /> {loading ? 'Please wait…' : mode === 'login' ? 'Sign in securely' : 'Sign up'}</Button>
@@ -171,7 +178,7 @@ function PostDetail({ post, posts, user, onBack, onUpdate, onLike, onBookmark, o
   return <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto max-w-5xl px-4 pb-20 pt-28 md:px-8">
     <button onClick={onBack} className="mb-10 flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-green-500"><ArrowLeft size={17} /> Back to all posts</button>
     <div className="mb-10 max-w-3xl"><div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-green-500"><span>{post.category}</span><span className="text-gray-300">•</span><span>{formatDate(post.publishedAt)}</span><span className="text-gray-300">•</span><span>{post.readTime} min read</span></div><h1 className="text-4xl font-black tracking-tight md:text-6xl">{post.title}</h1><p className="mt-6 text-xl leading-relaxed text-gray-500">{post.excerpt}</p>{post.coverUrl && <img src={post.coverUrl} alt="" className="mt-8 max-h-[440px] w-full rounded-3xl object-cover shadow-lg" />}<div className="mt-8 flex items-center gap-3 text-sm"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500 font-bold text-black">SM</div><span>By <strong>{post.author}</strong><br /><span className="text-gray-500">Fullstack & backend developer</span></span></div></div>
-    <div className="mb-10 flex flex-wrap items-center gap-3 border-y py-4">{user && <><button onClick={() => onLike(post)} className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-green-500 hover:text-green-500"><Heart size={17} /> {post.likes}</button><button onClick={() => onBookmark(post)} className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-green-500 hover:text-green-500 ${post.bookmarked ? 'border-green-500 text-green-500' : ''}`}><Bookmark size={17} /> {post.bookmarked ? 'Saved' : 'Save'}</button></>}<button onClick={share} className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-green-500 hover:text-green-500"><Share2 size={17} /> Share</button><span className="ml-auto flex items-center gap-2 text-sm text-gray-500"><Eye size={17} /> {post.views.toLocaleString()} reads</span></div>
+    <div className="mb-10 flex flex-wrap items-center gap-3 border-y py-4">{user && <>    <button onClick={() => onLike(post)} className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-green-500 hover:text-green-500 ${post.liked ? 'border-green-500 text-green-500' : ''}`}><Heart size={17} fill={post.liked ? 'currentColor' : 'none'} /> {post.likes}</button><button onClick={() => onBookmark(post)} className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-green-500 hover:text-green-500 ${post.bookmarked ? 'border-green-500 text-green-500' : ''}`}><Bookmark size={17} fill={post.bookmarked ? 'currentColor' : 'none'} /> {post.bookmarked ? 'Saved' : 'Save'}</button></>}<button onClick={share} className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm hover:border-green-500 hover:text-green-500"><Share2 size={17} /> Share</button><span className="ml-auto flex items-center gap-2 text-sm text-gray-500"><Eye size={17} /> {post.views.toLocaleString()} reads</span></div>
     <article className="prose prose-lg max-w-3xl dark:prose-invert">{post.content.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</article>
     <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_280px]"><section><h2 className="mb-5 flex items-center gap-2 text-2xl font-bold"><MessageCircle size={21} className="text-green-500" /> Discussion <span className="text-gray-400">({post.comments?.length || 0})</span></h2><div className="mb-6 flex gap-3"><input value={comment} onChange={(e) => setComment(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addComment()} placeholder={replyTo ? 'Write a reply…' : 'Join the conversation…'} className="min-w-0 flex-1 rounded-xl border bg-transparent px-4 py-3 outline-none focus:ring-2 focus:ring-green-500" /><Button onClick={addComment} className="bg-green-500 hover:bg-green-600">Post</Button></div>{replyTo && <button onClick={() => setReplyTo(null)} className="mb-4 text-xs text-gray-500">Cancel reply</button>}<div className="space-y-5">{(post.comments || []).map((item) => <div key={item.id} className="rounded-2xl border p-5"><div className="mb-2 flex justify-between text-sm"><strong>{item.author}</strong><span className="text-gray-400">Just now</span></div><p className="text-gray-600 dark:text-gray-300">{item.body}</p><button onClick={() => setReplyTo(item.id)} className="mt-3 text-xs font-semibold text-green-500">Reply</button></div>)}</div></section><aside><p className="mb-4 text-sm font-semibold uppercase tracking-widest text-gray-400">Related posts</p><div className="space-y-4">{related.map((item) => <button key={item.id} onClick={() => onUpdate(item)} className="block text-left"><span className="text-sm font-bold hover:text-green-500">{item.title}</span><span className="mt-1 block text-xs text-gray-500">{item.readTime} min read</span></button>)}</div></aside></div>
   </motion.div>;
@@ -208,7 +215,7 @@ export default function Blog({ onClose }) {
     const load = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       if (active && sessionData.session) setUser(sessionData.session.user);
-      const { data, error } = await supabase.from('posts').select('*, categories(name), post_tags(tags(name)), profiles!posts_author_id_fkey(display_name), comments(id, body, created_at, profiles(display_name))').order('published_at', { ascending: false });
+      const { data, error } = await supabase.from('posts').select('*, categories(name), post_tags(tags(name)), profiles!posts_author_id_fkey(display_name), comments(id, body, created_at, profiles(username, display_name))').order('published_at', { ascending: false });
       if (error) setLoadError(error.message);
       else if (active) setPosts(data.map(mapPost));
       if (active) setLoading(false);
@@ -282,7 +289,7 @@ export default function Blog({ onClose }) {
   const requireUser = (mode = 'login') => { if (!user) { setLoginMode(mode); setLoginOpen(true); return false; } return true; };
   const onLike = async (post) => { if (!requireUser()) return; const { error } = post.liked ? await supabase.from('post_likes').delete().match({ post_id: post.id, user_id: user.id }) : await supabase.from('post_likes').upsert({ post_id: post.id, user_id: user.id }); if (!error) { const next = { ...post, liked: !post.liked, likes: Math.max(0, post.likes + (post.liked ? -1 : 1)) }; updatePost(next); setSelected(next); await supabase.from('posts').update({ likes: next.likes }).eq('id', post.id); } };
   const onBookmark = async (post) => { if (!requireUser()) return; const table = supabase.from('bookmarks'); const action = post.bookmarked ? table.delete().match({ post_id: post.id, user_id: user.id }) : table.upsert({ post_id: post.id, user_id: user.id }); const { error } = await action; if (!error) { const next = { ...post, bookmarked: !post.bookmarked }; updatePost(next); setSelected(next); } };
-  const onComment = async (postId, body, parentId) => { if (!requireUser('signup')) return; const { data, error } = await supabase.from('comments').insert({ post_id: postId, author_id: user.id, body, parent_id: parentId || null }).select('id, body, created_at, profiles(display_name)').single(); if (!error) { const next = { ...selected, comments: [...(selected.comments || []), { ...data, author: data.profiles?.display_name || user.email }] }; updatePost(next); setSelected(next); } };
+  const onComment = async (postId, body, parentId) => { if (!requireUser('signup')) return; const { data, error } = await supabase.from('comments').insert({ post_id: postId, author_id: user.id, body, parent_id: parentId || null }).select('id, body, created_at, profiles(username, display_name)').single(); if (!error) { const next = { ...selected, comments: [...(selected.comments || []), { ...data, author: data.profiles?.username || data.profiles?.display_name || user.email }] }; updatePost(next); setSelected(next); } };
   const filterLabels = { all: 'All posts', liked: 'Liked posts', saved: 'Saved posts' };
   const filterIcons = { all: FileText, liked: Heart, saved: Bookmark };
   const ActiveFilterIcon = filterIcons[postFilter];
