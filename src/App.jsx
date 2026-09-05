@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 function App() {
   const [isDark, setIsDark] = useState(true);
   const [showBlog, setShowBlog] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
@@ -85,10 +86,10 @@ function App() {
 
         {/* The theme toggle button was moved to Header.jsx */}
 
-        {showBlog ? <Blog onClose={() => setShowBlog(false)} /> : <>
+        {showBlog ? <Blog initialPostId={selectedBlogId} onClose={() => { setSelectedBlogId(null); setShowBlog(false); }} /> : <>
           <Hero />
           <About />
-          <FeaturedBlogs onReadMore={() => setShowBlog(true)} />
+          <FeaturedBlogs onReadMore={(post) => { setSelectedBlogId(post?.id || null); setShowBlog(true); }} />
           <Projects />
           <Contact />
           <Footer />

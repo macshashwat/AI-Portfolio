@@ -9,6 +9,17 @@ import { Button } from '@/components/ui/button';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 const formatDate = (date) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(date));
+const formatCommentDate = (date) => {
+  const timestamp = new Date(date).getTime();
+  if (!Number.isFinite(timestamp)) return 'Unknown date';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  }).format(new Date(date));
+};
 
 const mapPost = (post) => ({
   ...post,
@@ -173,7 +184,7 @@ function CommentItem({ comment, comments, onReply, depth = 0 }) {
     <div className={`rounded-2xl border p-5 ${depth ? 'bg-green-500/5' : ''}`}>
       <div className="mb-3 flex items-center gap-3 text-sm">
         {comment.avatar?.startsWith('emoji:') ? <span className="flex h-9 w-9 items-center justify-center rounded-full bg-green-500/10 text-lg">{comment.avatar.slice(6)}</span> : comment.avatar ? <img src={comment.avatar} alt="" className="h-9 w-9 rounded-full object-cover" /> : <UserCircle size={36} className="text-green-500" />}
-        <strong>{comment.author}</strong><span className="ml-auto text-gray-400">Just now</span>
+        <strong>{comment.author}</strong><span className="ml-auto text-gray-400">{formatCommentDate(comment.created_at)}</span>
       </div>
       <p className="text-gray-600 dark:text-gray-300">{comment.body}</p>
       <button onClick={() => onReply(comment.id)} className="mt-3 text-xs font-semibold text-green-500">Reply</button>
@@ -212,7 +223,7 @@ function Dashboard({ posts, onNew, onEdit, onDelete, onOpen }) {
   </main>;
 }
 
-export default function Blog({ onClose }) {
+export default function Blog({ onClose, initialPostId = null }) {
   const [posts, setPosts] = useState([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('All');
@@ -229,6 +240,7 @@ export default function Blog({ onClose }) {
   const [dashboard, setDashboard] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const [initialPostOpened, setInitialPostOpened] = useState(false);
   useEffect(() => {
     if (!isSupabaseConfigured) { setLoading(false); return undefined; }
     let active = true;
@@ -269,6 +281,15 @@ export default function Blog({ onClose }) {
   const featured = filtered.find((post) => post.featured) || filtered[0];
   const updatePost = (next) => setPosts((current) => current.map((item) => item.id === next.id ? next : item));
   const openPost = async (post) => { const next = { ...post, views: post.views + 1 }; updatePost(next); setSelected(next); await supabase?.rpc('increment_post_views', { post_id: post.id }); };
+  useEffect(() => {
+    if (!initialPostOpened && initialPostId && posts.length > 0) {
+      const initialPost = posts.find((post) => post.id === initialPostId);
+      if (initialPost) {
+        setInitialPostOpened(true);
+        openPost(initialPost);
+      }
+    }
+  }, [initialPostId, posts, initialPostOpened]);
   const savePost = async (post) => {
     const { data: categoryData, error: categoryError } = await supabase.from('categories').select('id').eq('name', post.category).single();
     if (categoryError) throw categoryError;

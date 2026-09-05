@@ -92,7 +92,7 @@ function FeaturedBlogs({ onReadMore }) {
                     <span className="flex items-center gap-1"><Clock size={14} /> {post.readTime} min read</span>
                     <span className="flex items-center gap-1"><Calendar size={14} /> {post.author}</span>
                   </div>
-                  <button onClick={onReadMore} className="mt-5 flex items-center gap-2 text-sm font-semibold text-green-500 transition hover:gap-3">
+                  <button onClick={() => onReadMore(post)} className="mt-5 flex items-center gap-2 text-sm font-semibold text-green-500 transition hover:gap-3">
                     Read more <ArrowRight size={16} />
                   </button>
                 </div>
