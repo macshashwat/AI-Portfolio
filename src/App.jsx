@@ -27,14 +27,29 @@ function App() {
 
   useEffect(() => {
     let active = true;
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const hasHashAuth = hashParams.has('access_token') || hashParams.has('error');
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasCodeAuth = searchParams.has('code');
+    const callbackRequested = hasHashAuth
+      || hasCodeAuth
+      || searchParams.get('auth') === 'callback'
+      || sessionStorage.getItem('oauth_blog_redirect') === 'true';
+
+    // Supabase stores hash-based OAuth sessions automatically, but the fragment
+    // itself is not removed from the browser URL.
+    if (hasHashAuth) {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
+
     const finishAuthCallback = (session) => {
-      const authCallback = window.location.hash.includes('access_token')
-        || new URLSearchParams(window.location.search).has('code')
-        || sessionStorage.getItem('oauth_blog_redirect') === 'true';
-      if (active && session && authCallback) {
+      if (active && session && callbackRequested) {
         setShowBlog(true);
         sessionStorage.removeItem('oauth_blog_redirect');
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search.replace(/[?&]auth=callback/, ''));
+        const cleanUrl = new URL(window.location.href);
+        cleanUrl.searchParams.delete('auth');
+        cleanUrl.hash = '';
+        window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search);
       }
     };
     const { data: listener } = supabase?.auth.onAuthStateChange((_event, session) => finishAuthCallback(session)) || {};
