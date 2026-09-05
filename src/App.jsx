@@ -31,16 +31,17 @@ function App() {
     if (!authCallback) return undefined;
 
     let active = true;
-    const checkAuthCallback = async () => {
-      const { data } = await supabase?.auth.getSession();
-      if (active && data?.session) {
+    const finishAuthCallback = (session) => {
+      if (active && session) {
         setShowBlog(true);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.search.replace(/[?&]auth=callback/, ''));
       }
     };
-    checkAuthCallback();
+    const { data: listener } = supabase?.auth.onAuthStateChange((_event, session) => finishAuthCallback(session)) || {};
+    supabase?.auth.getSession().then(({ data }) => finishAuthCallback(data.session));
     return () => {
       active = false;
+      listener?.subscription.unsubscribe();
     };
   }, []);
 
