@@ -52,6 +52,7 @@ function LoginModal({ onClose, onLogin, initialMode = 'login' }) {
   const signInWithProvider = async (provider) => {
     setError('');
     setLoading(true);
+    sessionStorage.setItem('oauth_blog_redirect', 'true');
     const redirectTo = `${window.location.origin}/?auth=callback`;
     const { data, error: authError } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
     setLoading(false);

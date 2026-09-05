@@ -26,14 +26,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const authCallback = window.location.hash.includes('access_token')
-      || new URLSearchParams(window.location.search).has('code');
-    if (!authCallback) return undefined;
-
     let active = true;
     const finishAuthCallback = (session) => {
-      if (active && session) {
+      const authCallback = window.location.hash.includes('access_token')
+        || new URLSearchParams(window.location.search).has('code')
+        || sessionStorage.getItem('oauth_blog_redirect') === 'true';
+      if (active && session && authCallback) {
         setShowBlog(true);
+        sessionStorage.removeItem('oauth_blog_redirect');
         window.history.replaceState({}, document.title, window.location.pathname + window.location.search.replace(/[?&]auth=callback/, ''));
       }
     };
