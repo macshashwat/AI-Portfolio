@@ -17,8 +17,8 @@ import { supabase } from '@/lib/supabase';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
-  const [showBlog, setShowBlog] = useState(false);
-  const [selectedBlogId, setSelectedBlogId] = useState(null);
+  const [showBlog, setShowBlog] = useState(() => Boolean(new URLSearchParams(window.location.search).get('blog')));
+  const [selectedBlogId, setSelectedBlogId] = useState(() => new URLSearchParams(window.location.search).get('blog'));
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
@@ -86,10 +86,15 @@ function App() {
 
         {/* The theme toggle button was moved to Header.jsx */}
 
-        {showBlog ? <Blog initialPostId={selectedBlogId} onClose={() => { setSelectedBlogId(null); setShowBlog(false); }} /> : <>
+        {showBlog ? <Blog initialPostId={selectedBlogId} onClose={() => { setSelectedBlogId(null); setShowBlog(false); window.history.replaceState({}, document.title, window.location.pathname); }} /> : <>
           <Hero />
           <About />
-          <FeaturedBlogs onReadMore={(post) => { setSelectedBlogId(post?.id || null); setShowBlog(true); }} />
+          <FeaturedBlogs onReadMore={(post) => {
+            const blogId = post?.id || null;
+            setSelectedBlogId(blogId);
+            setShowBlog(true);
+            if (blogId) window.history.pushState({}, document.title, `${window.location.pathname}?blog=${encodeURIComponent(blogId)}`);
+          }} />
           <Projects />
           <Contact />
           <Footer />
