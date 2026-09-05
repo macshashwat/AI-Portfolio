@@ -52,7 +52,8 @@ function LoginModal({ onClose, onLogin, initialMode = 'login' }) {
   const signInWithProvider = async (provider) => {
     setError('');
     setLoading(true);
-    const { data, error: authError } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin } });
+    const redirectTo = `${window.location.origin}/?auth=callback`;
+    const { data, error: authError } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
     setLoading(false);
     if (authError) setError(authError.message);
     else if (!data?.url) setError(`${provider} login is not configured in Supabase Auth.`);

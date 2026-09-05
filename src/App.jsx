@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import Blog from '@/components/Blog';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
+import { supabase } from '@/lib/supabase';
 
 function App() {
   const [isDark, setIsDark] = useState(true);
@@ -22,6 +23,25 @@ function App() {
     if (saved) {
       setIsDark(saved === 'dark');
     }
+  }, []);
+
+  useEffect(() => {
+    const authCallback = window.location.hash.includes('access_token')
+      || new URLSearchParams(window.location.search).has('code');
+    if (!authCallback) return undefined;
+
+    let active = true;
+    const checkAuthCallback = async () => {
+      const { data } = await supabase?.auth.getSession();
+      if (active && data?.session) {
+        setShowBlog(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+    checkAuthCallback();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
